@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">MusicPie</string>
     <string name="first_content_description">Background of the first song</string>
+    <string name="coverDetail">cover</string>
 </resources>
