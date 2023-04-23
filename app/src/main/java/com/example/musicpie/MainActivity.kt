@@ -1,5 +1,6 @@
 package com.example.musicpie
 
+import android.content.Intent
 import android.media.MediaPlayer
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
@@ -19,6 +20,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var playPauseButton: Button
     private lateinit var nextButton: Button
     private lateinit var previousButton: Button
+    private lateinit var detailButton: Button
     private lateinit var seekBar: SeekBar
     private lateinit var cover: ImageView
     private var pos = 0
@@ -37,31 +39,18 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        pos = intent.getIntExtra("position", 0)
         binding = DataBindingUtil.setContentView(this, R.layout.activity_main)
         playPauseButton = binding.playPauseButton
         nextButton = binding.nextButton
         previousButton = binding.previousButton
+        detailButton = binding.detailButton
         seekBar = binding.seekBar
         cover = binding.cover
 
         player(songs[pos])
-        cover.setImageResource(covers[0])
-    }
-
-    private fun initSeekbar() {
-
-        seekBar.max = mediaPlayer?.duration ?: 0
-        val handler = Handler(Looper.getMainLooper())
-        handler.postDelayed(object : Runnable {
-            override fun run() {
-                try {
-                    seekBar.progress = mediaPlayer!!.currentPosition
-                    handler.postDelayed(this, 1000)
-                } catch (e: Exception) {
-                    seekBar.progress = 0
-                }
-            }
-        }, 0)
+        cover.setImageResource(covers[pos])
     }
 
     private fun player(id: Int) {
@@ -129,5 +118,35 @@ class MainActivity : AppCompatActivity() {
             playPauseButton.setBackgroundResource(R.drawable.pause)
             cover.setImageResource(covers[pos])
         }
+
+        detailButton.setOnClickListener {
+            val intent = Intent(this,DetailActivity::class.java)
+            intent.putExtra("position", pos)
+            mediaPlayer?.stop()
+            mediaPlayer?.release()
+            startActivity(intent)
+        }
+    }
+
+    private fun initSeekbar() {
+
+        seekBar.max = mediaPlayer?.duration ?: 0
+        val handler = Handler(Looper.getMainLooper())
+        handler.postDelayed(object : Runnable {
+            override fun run() {
+                try {
+                    seekBar.progress = mediaPlayer!!.currentPosition
+                    handler.postDelayed(this, 1000)
+                } catch (e: Exception) {
+                    seekBar.progress = 0
+                }
+            }
+        }, 0)
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        mediaPlayer?.stop()
+        mediaPlayer?.release()
     }
 }
