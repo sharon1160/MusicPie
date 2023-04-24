@@ -55,7 +55,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun startAnimation(motionLayout: MotionLayout) {
-        Log.d("NOOOOOOO", "ID: ${mediaPlayer?.isPlaying}")
         motionLayout.transitionToEnd()
         motionLayout.transitionToStart()
     }
@@ -71,13 +70,11 @@ class MainActivity : AppCompatActivity() {
                 mediaPlayer?.start()
                 playPauseButton.setBackgroundResource(R.drawable.pause)
                 cover.setImageResource(covers[pos])
-                Log.d("PLAYING", "ID: ${mediaPlayer?.isPlaying}")
                 initSeekbar()
             } else {
                 if (mediaPlayer?.isPlaying == true) {
                     mediaPlayer?.pause()
                     playPauseButton.setBackgroundResource(R.drawable.play)
-                    Log.d("PAUSING", "ID: $id")
                 } else {
                     startAnimation(motionLayout)
                     mediaPlayer?.start()
@@ -136,10 +133,20 @@ class MainActivity : AppCompatActivity() {
         detailButton.setOnClickListener {
             val intent = Intent(this,DetailActivity::class.java)
             intent.putExtra("position", pos)
-            mediaPlayer?.stop()
-            mediaPlayer?.release()
+            destroy()
             startActivity(intent)
         }
+    }
+
+    private fun destroy() {
+        mediaPlayer?.stop()
+        mediaPlayer?.release()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        mediaPlayer?.stop()
+        mediaPlayer?.release()
     }
 
     private fun initSeekbar() {
@@ -156,11 +163,5 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }, 0)
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        mediaPlayer?.stop()
-        mediaPlayer?.release()
     }
 }
