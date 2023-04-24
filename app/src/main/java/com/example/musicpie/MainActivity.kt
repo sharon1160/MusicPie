@@ -10,6 +10,7 @@ import android.util.Log
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.SeekBar
+import androidx.constraintlayout.motion.widget.MotionLayout
 import androidx.databinding.DataBindingUtil
 import com.example.musicpie.databinding.ActivityMainBinding
 
@@ -27,9 +28,9 @@ class MainActivity : AppCompatActivity() {
 
     private var mediaPlayer: MediaPlayer? = null
     private var covers: MutableList<Int> = mutableListOf(
-        R.drawable.cover1,
-        R.drawable.cover2,
-        R.drawable.cover3
+        R.drawable.cover1_circle,
+        R.drawable.cover2_circle,
+        R.drawable.cover3_circle
     )
     private var songs: MutableList<Int> = mutableListOf(
         R.raw.song1,
@@ -53,9 +54,19 @@ class MainActivity : AppCompatActivity() {
         cover.setImageResource(covers[pos])
     }
 
+    private fun startAnimation(motionLayout: MotionLayout) {
+        Log.d("NOOOOOOO", "ID: ${mediaPlayer?.isPlaying}")
+        motionLayout.transitionToEnd()
+        motionLayout.transitionToStart()
+    }
+
     private fun player(id: Int) {
+
+        val motionLayout = findViewById<MotionLayout>(R.id.constraintLayout)
+
         playPauseButton.setOnClickListener {
             if (mediaPlayer == null) {
+                startAnimation(motionLayout)
                 mediaPlayer = MediaPlayer.create(this, id)
                 mediaPlayer?.start()
                 playPauseButton.setBackgroundResource(R.drawable.pause)
@@ -68,6 +79,7 @@ class MainActivity : AppCompatActivity() {
                     playPauseButton.setBackgroundResource(R.drawable.play)
                     Log.d("PAUSING", "ID: $id")
                 } else {
+                    startAnimation(motionLayout)
                     mediaPlayer?.start()
                     playPauseButton.setBackgroundResource(R.drawable.pause)
                     Log.d("PLAYING", "ID: $id")
@@ -100,6 +112,7 @@ class MainActivity : AppCompatActivity() {
 
             mediaPlayer = MediaPlayer.create(this, songs[pos])
             mediaPlayer?.start()
+            startAnimation(motionLayout)
             playPauseButton.setBackgroundResource(R.drawable.pause)
             cover.setImageResource(covers[pos])
         }
@@ -115,6 +128,7 @@ class MainActivity : AppCompatActivity() {
 
             mediaPlayer = MediaPlayer.create(this, songs[pos])
             mediaPlayer?.start()
+            startAnimation(motionLayout)
             playPauseButton.setBackgroundResource(R.drawable.pause)
             cover.setImageResource(covers[pos])
         }
