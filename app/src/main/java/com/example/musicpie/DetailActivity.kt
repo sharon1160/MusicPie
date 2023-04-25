@@ -20,11 +20,6 @@ class DetailActivity: AppCompatActivity() {
         R.drawable.cover2,
         R.drawable.cover3
     )
-    private var songs: MutableList<Int> = mutableListOf(
-        R.raw.song1,
-        R.raw.song2,
-        R.raw.song3
-    )
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
