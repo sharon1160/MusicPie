@@ -6,7 +6,6 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.util.Log
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.SeekBar
@@ -26,7 +25,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var cover: ImageView
     private var pos = 0
 
-    private var mediaPlayer: MediaPlayer? = null
+    private var mediaPlayerSingleton = MediaPlayerSingleton
     private var covers: MutableList<Int> = mutableListOf(
         R.drawable.cover1_circle,
         R.drawable.cover2_circle,
@@ -50,6 +49,12 @@ class MainActivity : AppCompatActivity() {
         seekBar = binding.seekBar
         cover = binding.cover
 
+        mediaPlayerSingleton.mediaPlayer?.let {
+            if (it.isPlaying) {
+                playPauseButton.setBackgroundResource(R.drawable.pause)
+            }
+            initSeekbar()
+        }
         player(songs[pos])
         cover.setImageResource(covers[pos])
     }
@@ -64,30 +69,24 @@ class MainActivity : AppCompatActivity() {
         val motionLayout = findViewById<MotionLayout>(R.id.constraintLayout)
 
         playPauseButton.setOnClickListener {
-            if (mediaPlayer == null) {
-                startAnimation(motionLayout)
-                mediaPlayer = MediaPlayer.create(this, id)
-                mediaPlayer?.start()
-                playPauseButton.setBackgroundResource(R.drawable.pause)
-                cover.setImageResource(covers[pos])
-                initSeekbar()
+
+            if (mediaPlayerSingleton.isPlaying()) {
+                mediaPlayerSingleton.pause()
+                playPauseButton.setBackgroundResource(R.drawable.play)
             } else {
-                if (mediaPlayer?.isPlaying == true) {
-                    mediaPlayer?.pause()
-                    playPauseButton.setBackgroundResource(R.drawable.play)
-                } else {
-                    startAnimation(motionLayout)
-                    mediaPlayer?.start()
-                    playPauseButton.setBackgroundResource(R.drawable.pause)
-                    Log.d("PLAYING", "ID: $id")
-                    initSeekbar()
+                if (mediaPlayerSingleton.mediaPlayer == null) {
+                    mediaPlayerSingleton.init(this, id)
                 }
+                mediaPlayerSingleton.start()
+                startAnimation(motionLayout)
+                playPauseButton.setBackgroundResource(R.drawable.pause)
+                initSeekbar()
             }
         }
 
-        seekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener{
+        seekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(p0: SeekBar?, progress: Int, user: Boolean) {
-                if (user)  mediaPlayer?.seekTo(progress)
+                if (user) mediaPlayerSingleton.mediaPlayer?.seekTo(progress)
             }
 
             override fun onStartTrackingTouch(p0: SeekBar?) {
@@ -99,7 +98,7 @@ class MainActivity : AppCompatActivity() {
         })
 
         nextButton.setOnClickListener {
-            mediaPlayer?.pause()
+            mediaPlayerSingleton.mediaPlayer?.pause()
 
             if (pos < songs.size - 1) {
                 pos++
@@ -107,15 +106,15 @@ class MainActivity : AppCompatActivity() {
                 pos = 0
             }
 
-            mediaPlayer = MediaPlayer.create(this, songs[pos])
-            mediaPlayer?.start()
+            mediaPlayerSingleton.mediaPlayer = MediaPlayer.create(this, songs[pos])
+            mediaPlayerSingleton.mediaPlayer?.start()
             startAnimation(motionLayout)
             playPauseButton.setBackgroundResource(R.drawable.pause)
             cover.setImageResource(covers[pos])
         }
 
         previousButton.setOnClickListener {
-            mediaPlayer?.pause()
+            mediaPlayerSingleton.mediaPlayer?.pause()
 
             if (pos > 0) {
                 pos--
@@ -123,40 +122,35 @@ class MainActivity : AppCompatActivity() {
                 pos = songs.size - 1
             }
 
-            mediaPlayer = MediaPlayer.create(this, songs[pos])
-            mediaPlayer?.start()
+            mediaPlayerSingleton.mediaPlayer = MediaPlayer.create(this, songs[pos])
+            mediaPlayerSingleton.mediaPlayer?.start()
             startAnimation(motionLayout)
             playPauseButton.setBackgroundResource(R.drawable.pause)
             cover.setImageResource(covers[pos])
         }
 
         detailButton.setOnClickListener {
-            val intent = Intent(this,DetailActivity::class.java)
+            val intent = Intent(this, DetailActivity::class.java)
             intent.putExtra("position", pos)
-            destroy()
             startActivity(intent)
         }
     }
 
-    private fun destroy() {
-        mediaPlayer?.stop()
-        mediaPlayer?.release()
-    }
 
     override fun onDestroy() {
         super.onDestroy()
-        mediaPlayer?.stop()
-        mediaPlayer?.release()
+        mediaPlayerSingleton.mediaPlayer?.stop()
+        mediaPlayerSingleton.release()
     }
 
     private fun initSeekbar() {
 
-        seekBar.max = mediaPlayer?.duration ?: 0
+        seekBar.max = mediaPlayerSingleton.mediaPlayer?.duration ?: 0
         val handler = Handler(Looper.getMainLooper())
         handler.postDelayed(object : Runnable {
             override fun run() {
                 try {
-                    seekBar.progress = mediaPlayer!!.currentPosition
+                    seekBar.progress = mediaPlayerSingleton.mediaPlayer!!.currentPosition
                     handler.postDelayed(this, 1000)
                 } catch (e: Exception) {
                     seekBar.progress = 0
